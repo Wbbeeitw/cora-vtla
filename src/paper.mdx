@@ -1,0 +1,244 @@
+---
+title: "CoRA-VTLA: Contact-Guided Attention and Queryable Response Memory for Tactile Post-Training"
+theme: light
+favicon: favicon.svg
+description: Tactile post-training for pretrained vision-language-action models with a queryable action-response memory and contact-guided gaze supervision, evaluated in simulation, on the UniVTAC benchmark, and on a real robot.
+thumbnail: images/robot-closeup.jpg
+---
+
+import Header from "./components/Header.astro";
+import HighlightedSection from "./components/HighlightedSection.astro";
+import Figure from "./components/Figure.astro";
+import Picture from "./components/Picture.astro";
+import Wide from "./components/Wide.astro";
+
+import realFig from "./assets/Fig3-VTLA-montage.png";
+import univtacFig from "./assets/Fig6-UniVTAC.png";
+import robotCloseup from "./assets/robot-closeup.jpg";
+
+<Header
+  title="CoRA-VTLA: Contact-Guided Attention and Queryable Response Memory for Tactile Post-Training"
+  conference="Preprint"
+  authors={[
+    { name: "Chengye Song", notes: ["1"] },
+    { name: "Rui Song", notes: ["1"] },
+    { name: "Shengqi Wang", notes: ["1"] },
+    { name: "Jiawei Zhang", notes: ["2"] },
+    { name: "Hongzhou Wang", notes: ["2"] },
+    { name: "Xueyang Guo", notes: ["3"] },
+    { name: "Yang Liu", notes: ["1"] },
+  ]}
+  notes={[
+    { symbol: "1", text: "Dalian University of Technology" },
+    { symbol: "2", text: "Jilin University" },
+    { symbol: "3", text: "Tsinghua University" },
+  ]}
+  links={[
+    { name: "arXiv", url: "#", icon: "academicons:arxiv" },
+    { name: "Code (coming soon)", url: "#", icon: "ri:github-line" },
+  ]}
+>
+  <Picture slot="background" src={robotCloseup} alt="" priority />
+</Header>
+
+<HighlightedSection>
+
+## Abstract
+
+In precision manipulation, small errors in alignment or force can cause jamming or deformation, making contact feedback essential for adapting pretrained vision–language–action (VLA) models to these tasks. A single tactile observation leaves the response to recent actions ambiguous, and directly introducing tactile inputs during post-training can disrupt general-purpose capabilities acquired during pretraining and draw visual attention away from contact regions. To address these challenges, CoRA-VTLA augments pretrained VLAs with lightweight tactile modules. A queryable action–response memory retrieves recent contact responses so that the action expert can combine them with immediate tactile feedback. Contact-guided gaze supervision concentrates the visual attention of the tactile semantic token on image regions corresponding to fingertip contact. CoRA-VTLA achieves 73.33% mean success across three MuJoCo tasks, compared with 50% for direct tactile fusion with the same sensor inputs. It also achieves 67% success on an optical-tactile task from the public UniVTAC benchmark and 66.7% mean success across three real-robot tasks.
+
+</HighlightedSection>
+
+## CoRA-VTLA at a glance
+
+<Wide>
+  <div class="mx-auto max-w-6xl">
+  <Figure>
+    <img slot="figure" src="/images/Fig1-VTLA.svg" alt="Overview: blocked insertions, the three tactile pathways, success rates, and rollout keyframes."  class="w-full h-auto" />
+    <Fragment slot="caption">
+      <b>(a)</b> Blocked insertions with fingertip pressure maps and load traces around withdrawal. <b>(b)</b> A tactile semantic token enters the VLM, while current contact and queried action–response memory condition the action expert. <b>(c)</b> Success rates in MuJoCo, on UniVTAC Insert Tube, and on three real-robot tasks. <b>(d)</b> Rollout keyframes.
+    </Fragment>
+  </Figure>
+  </div>
+</Wide>
+
+## Method
+
+<Wide>
+  <div class="mx-auto max-w-5xl">
+  <Figure>
+    <img slot="figure" src="/images/Fig2-VTLA.svg" alt="CoRA-VTLA architecture with the semantic branch, contact token, interaction memory token, and response pretraining."  class="w-full h-auto" />
+    <Fragment slot="caption">
+      CoRA-VTLA adds three lightweight tactile pathways to a pretrained π<sub>0.5</sub> policy: a <b>current contact token</b> carrying the instantaneous pressure and wrist force/torque, a <b>queryable action–response memory token</b> that encodes the last 0.8&nbsp;s of measured contact responses and is read with a query built from the current contact and robot state, and a <b>tactile semantic token</b> appended to the VLM prefix, grounded by contact-guided gaze supervision.
+    </Fragment>
+  </Figure>
+  </div>
+</Wide>
+
+The two action-side encoders are first initialized by **response pretraining**: from task demonstrations alone, they are trained to predict the next-step change in pressure, wrist force/torque, and robot motion, after which the temporary prediction head is discarded. All modules are then trained jointly with the full policy under the standard flow-matching objective, with attribute and gaze supervision on the semantic branch.
+
+## Simulated rollouts
+
+### Plug insertion (recovery)
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-3 gap-2 md:grid-cols-6">
+  <img src="/images/sim/plug-ours-1.png" alt="Start" class="w-full rounded-md" />
+  <img src="/images/sim/plug-ours-2.png" alt="First contact" class="w-full rounded-md" />
+  <img src="/images/sim/plug-ours-3.png" alt="Advancing" class="w-full rounded-md" />
+  <img src="/images/sim/plug-ours-4.png" alt="Inserted" class="w-full rounded-md" />
+  <img src="/images/sim/plug-ours-5.png" alt="Released" class="w-full rounded-md" />
+  <img src="/images/sim/plug-ours-6.png" alt="Done" class="w-full rounded-md" />
+</div>
+<p class="text-sm text-center"><i>CoRA-VTLA: start → first contact → advancing → inserted → released → done.</i></p>
+
+### Knob operation (recovery)
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-3 gap-2 md:grid-cols-6">
+  <img src="/images/sim/knob-ours-1.png" alt="Start" class="w-full rounded-md" />
+  <img src="/images/sim/knob-ours-2.png" alt="Grasp" class="w-full rounded-md" />
+  <img src="/images/sim/knob-ours-3.png" alt="Press and turn" class="w-full rounded-md" />
+  <img src="/images/sim/knob-ours-4.png" alt="Target angle" class="w-full rounded-md" />
+  <img src="/images/sim/knob-ours-5.png" alt="Released" class="w-full rounded-md" />
+  <img src="/images/sim/knob-ours-6.png" alt="Done" class="w-full rounded-md" />
+</div>
+<p class="text-sm text-center"><i>CoRA-VTLA: start → grasp → press and turn → target angle → released → done.</i></p>
+
+### Nail insertion
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-3 gap-2 md:grid-cols-6">
+  <img src="/images/sim/nail-ours-1.png" alt="Start" class="w-full rounded-md" />
+  <img src="/images/sim/nail-ours-2.png" alt="First contact" class="w-full rounded-md" />
+  <img src="/images/sim/nail-ours-3.png" alt="Advancing" class="w-full rounded-md" />
+  <img src="/images/sim/nail-ours-4.png" alt="Inserted" class="w-full rounded-md" />
+  <img src="/images/sim/nail-ours-5.png" alt="Released" class="w-full rounded-md" />
+  <img src="/images/sim/nail-ours-6.png" alt="Done" class="w-full rounded-md" />
+</div>
+<p class="text-sm text-center"><i>CoRA-VTLA: start → first contact → advancing → inserted → released → done.</i></p>
+
+### The signals behind a recovery
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-1 gap-2 md:grid-cols-3">
+  <img src="/images/sim/plug-load.png" alt="Fingertip load over time" class="w-full rounded-md" />
+  <img src="/images/sim/plug-wrench.png" alt="Wrist wrench over time" class="w-full rounded-md" />
+  <img src="/images/sim/plug-displacement.png" alt="End-effector displacement over time" class="w-full rounded-md" />
+</div>
+<p class="text-sm text-center"><i>A successful plug insertion: fingertip load, wrist wrench, and realized displacement — the responses the memory token reads.</i></p>
+
+**Recovery rollouts (CoRA-VTLA, muted)**
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-1 gap-3 md:grid-cols-3">
+  <video src="/videos/sim-plug-recover.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/sim-knob-recover.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/sim-nail-recover.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+</div>
+<p class="text-sm text-center"><i>Blocked, then recovered: plug insertion · knob operation · nail insertion.</i></p>
+
+<div class="mx-auto max-w-5xl">
+  <Figure>
+    <img slot="figure" src="/images/sim/sim-behavior.png" alt="Simulated behavior and attention analysis."  class="w-full h-auto" />
+    <Fragment slot="caption">Simulated recovery behavior with synchronized contact signals and attention.</Fragment>
+  </Figure>
+</div>
+
+## Real robot
+
+On the real robot, the vision-only baseline keeps pressing after contact is blocked, tilts or drops grasped objects, and trips force limits — while CoRA-VTLA registers the load response, adjusts, and completes the task. All clips are muted.
+
+**Vision-only baseline (failures)**
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-1 gap-3 md:grid-cols-3">
+  <video src="/videos/base-dead.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/base-overlimit.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/base-cup-tilt.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+</div>
+<p class="text-sm text-center"><i>Pressing through the blockage until failure · force-limit trip · tilting the cup during stacking.</i></p>
+
+**CoRA-VTLA (successes)**
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-1 gap-3 md:grid-cols-3">
+  <video src="/videos/ours-recover.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/ours-light-press.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <video src="/videos/ours-full.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+</div>
+<p class="text-sm text-center"><i>Withdrawing and realigning after a blockage · gentle pressing on contact · a complete task episode.</i></p>
+
+### Platform
+
+<div class="not-prose mx-auto max-w-5xl grid grid-cols-2 gap-2 md:grid-cols-5">
+  <img src="/images/robot-closeup.jpg" alt="Gripper close-up with tactile arrays" class="w-full rounded-md" />
+  <img src="/images/lab-setup.jpg" alt="Workspace" class="w-full rounded-md" />
+  <img src="/images/site-real-1.jpg" alt="Platform view" class="w-full rounded-md" />
+  <img src="/images/site-real-2.jpg" alt="Platform view" class="w-full rounded-md" />
+  <img src="/images/site-real-3.jpg" alt="Platform view" class="w-full rounded-md" />
+</div>
+
+<div class="mx-auto max-w-5xl">
+  <Figure>
+    <Picture slot="figure" src={realFig} alt="Real-robot platform and rollouts for cup stacking, stamping, and tube insertion." />
+    <Fragment slot="caption">
+      Real-robot tasks and rollouts. CoRA-VTLA achieves the highest success rate on all three tasks — cup stacking, stamping, and tube insertion — averaging <b>66.7%</b>, 22.0 points above the strongest baseline.
+    </Fragment>
+  </Figure>
+</div>
+
+## Results
+
+<div class="not-prose overflow-x-auto">
+<table class="mx-auto w-full max-w-5xl text-sm text-center border-collapse">
+  <thead>
+    <tr class="text-zinc-500">
+      <th rowspan="2" class="px-3 py-2 text-left font-semibold align-bottom">Method</th>
+      <th colspan="4" class="px-3 py-1 font-semibold border-b border-zinc-300">MuJoCo (%)</th>
+      <th class="px-3 py-1 font-semibold border-b border-zinc-300">UniVTAC (%)</th>
+      <th colspan="4" class="px-3 py-1 font-semibold border-b border-zinc-300">Real robot (%)</th>
+    </tr>
+    <tr class="border-b border-zinc-300 text-zinc-500">
+      <th class="px-3 py-1 font-medium">Nail</th><th class="px-2 py-1 font-medium">Plug</th><th class="px-2 py-1 font-medium">Knob</th><th class="px-2 py-1 font-medium">Avg.</th>
+      <th class="px-3 py-1 font-medium">Insert Tube</th>
+      <th class="px-3 py-1 font-medium">Cup</th><th class="px-2 py-1 font-medium">Stamp</th><th class="px-2 py-1 font-medium">Tube</th><th class="px-2 py-1 font-medium">Avg.</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="border-b border-zinc-200"><td class="px-3 py-2 text-left">Base (π<sub>0.5</sub>)</td><td>74.0</td><td>0.0</td><td>20.0</td><td>31.33</td><td>46</td><td>38</td><td>30</td><td>30</td><td>32.7</td></tr>
+    <tr class="border-b border-zinc-200"><td class="px-3 py-2 text-left">Direct</td><td>68.0</td><td>32.0</td><td>50.0</td><td>50.00</td><td>51</td><td>50</td><td>48</td><td>34</td><td>44.0</td></tr>
+    <tr class="border-b border-zinc-200"><td class="px-3 py-2 text-left">FTP-π<sub>0.5</sub></td><td>56.0</td><td>4.0</td><td class="font-bold">72.0</td><td>44.00</td><td>57</td><td>46</td><td>44</td><td>44</td><td>44.7</td></tr>
+    <tr class="bg-zinc-100"><td class="px-3 py-2 text-left font-bold">CoRA-VTLA</td><td class="font-bold">78.0</td><td class="font-bold">76.0</td><td class="font-bold">66.0</td><td class="font-bold">73.33</td><td class="font-bold">67</td><td class="font-bold">68</td><td class="font-bold">76</td><td class="font-bold">56</td><td class="font-bold">66.7</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="text-sm text-center"><i>Success rates under identical demonstrations, evaluation scenes, and tactile inputs within each benchmark; optical tactile on UniVTAC.</i></p>
+
+## Where the policy looks
+
+<div class="mx-auto max-w-5xl">
+  <Figure>
+    <img slot="figure" src="/images/Fig5-GazeMatched.svg" alt="Contact-region attention with and without gaze supervision on matched observations."  class="w-full h-auto" />
+    <Fragment slot="caption">
+      Contact-region attention on matched observations. With gaze supervision, the tactile semantic token places 52.38% of its main-camera attention inside the projected fingertip contact region at the supervised layer; without gaze, 2.77%.
+    </Fragment>
+  </Figure>
+</div>
+
+<div class="mx-auto max-w-5xl">
+  <Figure>
+    <Picture slot="figure" src={univtacFig} alt="UniVTAC Insert Tube results." />
+    <Fragment slot="caption">UniVTAC Insert Tube: paired outcomes and per-episode comparison.</Fragment>
+  </Figure>
+</div>
+
+<div class="mx-auto max-w-5xl">
+  <video src="/videos/univtac-recover.mp4" controls muted playsinline preload="metadata" class="w-full rounded-md"></video>
+  <p class="text-sm text-center"><i>CoRA-VTLA on UniVTAC Insert Tube with optical tactile sensing (muted).</i></p>
+</div>
+
+## Citation
+
+```bibtex
+@misc{song2026coravtla,
+  author = "{Chengye Song and Rui Song and Shengqi Wang and Jiawei Zhang and Hongzhou Wang and Xueyang Guo and Yang Liu}",
+  title = "CoRA-VTLA: Contact-Guided Attention and Queryable Response Memory for Tactile Post-Training",
+  year = "2026",
+  howpublished = "arXiv preprint (coming soon)",
+}
+```
